@@ -3,11 +3,12 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from snippets.models import Snippet
 from snippets.serializer import SnippetSerializer
+
+
 # Create your views here
 
-
 @csrf_exempt
-def snippet_lsit(request):
+def snippet_list(request):
     ### List all code snippts or create a new snippet.
 
     if request.method == 'GET':
