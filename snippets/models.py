@@ -1,6 +1,10 @@
 from django.db import models
 from pygments.lexers import get_all_lexers  #To get all available lexers(programming language) supported by pygment.
 from pygments.styles import get_all_styles   #To get all available styles supported by pygments.
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters.html import HtmlFormatter
+from pygments import highlight
+
 
 # Create your models here.
 
@@ -35,6 +39,22 @@ class Snippet(models.Model):
     linenos = models.BooleanField(default=False)  ##a BooleanField to specify whether line numbers should be displayed with the snippet.
     language = models.CharField(choices=LANGUAGE_CHOICES, default='python', max_length=100) # a CharField with choices defined by LANGUAGE_CHOICES, representing the programming language of the snippet.
     style = models.CharField(choices=STYLE_CHOICES, default='friendly', max_length=100) #a CharField with choices defined by STYLE_CHOICES, representing the code highlighting style.
+    owner = models.ForeignKey('auth.User', related_name = 'snippets', on_delete = models.CASCADE)  #Represnts the user who created the snippet. 
+    highlighted = models.TextField()   # stores the html representaion of the code.
 
     class Meta:
         ordering = ['created']   # specifies that the results should be ordered by the created field in ascending order by default.
+
+
+
+    def save(self, *args, **kwargs):
+    
+    #Use the `pygments` library to create a highlighted HTML representation of the code snippet.
+   
+        lexer = get_lexer_by_name(self.language)
+        linenos = 'table' if self.linenos else False
+        options = {'title': self.title} if self.title else {}
+        formatter = HtmlFormatter(style=self.style, linenos=linenos,full=True, **options)
+        self.highlighted = highlight(self.code, lexer, formatter)
+        super().save(*args, **kwargs)
+        
